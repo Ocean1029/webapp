@@ -28,3 +28,14 @@ export interface Conversation {
   createdAt: string;
   updatedAt: string;
 }
+
+/** Conversation with its associated analyses, returned by the detail endpoint. */
+export interface ConversationWithAnalyses extends Conversation {
+  analyses: AnalysisResponse[];
+}
+
+/** Lightweight conversation summary for the list view. */
+export interface ConversationSummary extends Conversation {
+  latestAnalysisDate: string | null;
+  analysisCount: number;
+}

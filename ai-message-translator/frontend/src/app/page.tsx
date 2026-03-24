@@ -60,12 +60,9 @@ export default function Home() {
 
   return (
     <div className="flex flex-col flex-1 items-center bg-gray-50 min-h-screen">
-      <header className="w-full bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-2xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-gray-900 text-center">
-            AI 已讀不回翻譯機
-          </h1>
-          <p className="mt-1 text-sm text-gray-500 text-center">
+      <header className="w-full">
+        <div className="max-w-2xl mx-auto px-4 py-6 text-center">
+          <p className="text-sm text-gray-500">
             上傳聊天截圖或貼上對話，幫你解讀對方的潛台詞
           </p>
         </div>

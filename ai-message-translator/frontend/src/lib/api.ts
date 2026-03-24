@@ -1,6 +1,10 @@
 // API client for communicating with the Go backend
 
-import type { AnalysisResponse } from "@/types";
+import type {
+  AnalysisResponse,
+  ConversationSummary,
+  ConversationWithAnalyses,
+} from "@/types";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -46,6 +50,34 @@ export async function analyzeText(
 
   if (!res.ok) {
     throw new Error(`Text analysis failed: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Fetch all conversations (with summary info).
+ */
+export async function getConversations(): Promise<ConversationSummary[]> {
+  const res = await fetch(`${API_BASE}/api/conversations`);
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch conversations: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Fetch a single conversation with all its analyses.
+ */
+export async function getConversation(
+  id: string
+): Promise<ConversationWithAnalyses> {
+  const res = await fetch(`${API_BASE}/api/conversations/${id}`);
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch conversation: ${res.status}`);
   }
 
   return res.json();
