@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/Ocean1029/webapp/ai-message-translator/backend/internal/ai"
@@ -122,6 +123,7 @@ func (h *Handler) HandleAnalyzeText(w http.ResponseWriter, r *http.Request) {
 		ToneMode:         req.ToneMode,
 	})
 	if err != nil {
+		log.Printf("AI analysis error: %v", err)
 		errorResponse(w, http.StatusInternalServerError, "AI analysis failed")
 		return
 	}

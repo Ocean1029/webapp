@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/Ocean1029/webapp/ai-message-translator/backend/internal/model"
 	"github.com/anthropics/anthropic-sdk-go"
@@ -81,8 +82,15 @@ func (c *Client) Analyze(ctx context.Context, req AnalysisRequest) (*AnalysisRes
 		return nil, fmt.Errorf("unexpected content block type: %s", block.Type)
 	}
 
+	// Strip markdown code block fences if present (e.g., ```json ... ```).
+	text := strings.TrimSpace(block.Text)
+	text = strings.TrimPrefix(text, "```json")
+	text = strings.TrimPrefix(text, "```")
+	text = strings.TrimSuffix(text, "```")
+	text = strings.TrimSpace(text)
+
 	var resp AnalysisResponse
-	if err := json.Unmarshal([]byte(block.Text), &resp); err != nil {
+	if err := json.Unmarshal([]byte(text), &resp); err != nil {
 		return nil, fmt.Errorf("failed to parse Claude response as JSON: %w", err)
 	}
 
