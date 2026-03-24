@@ -1,13 +1,10 @@
-// API client for communicating with the Go backend
+// API client for communicating with the Next.js API routes
 
 import type {
   AnalysisResponse,
   ConversationSummary,
   ConversationWithAnalyses,
 } from "@/types";
-
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 /**
  * Upload a screenshot image for analysis.
@@ -22,7 +19,7 @@ export async function analyzeScreenshot(
   formData.append("toneMode", toneMode);
   formData.append("contactName", contactName);
 
-  const res = await fetch(`${API_BASE}/api/analyze/screenshot`, {
+  const res = await fetch("/api/analyze/screenshot", {
     method: "POST",
     body: formData,
   });
@@ -42,7 +39,7 @@ export async function analyzeText(
   toneMode: string,
   contactName: string
 ): Promise<AnalysisResponse> {
-  const res = await fetch(`${API_BASE}/api/analyze/text`, {
+  const res = await fetch("/api/analyze/text", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text, toneMode, contactName }),
@@ -59,7 +56,7 @@ export async function analyzeText(
  * Fetch all conversations (with summary info).
  */
 export async function getConversations(): Promise<ConversationSummary[]> {
-  const res = await fetch(`${API_BASE}/api/conversations`);
+  const res = await fetch("/api/conversations");
 
   if (!res.ok) {
     throw new Error(`Failed to fetch conversations: ${res.status}`);
@@ -74,7 +71,7 @@ export async function getConversations(): Promise<ConversationSummary[]> {
 export async function getConversation(
   id: string
 ): Promise<ConversationWithAnalyses> {
-  const res = await fetch(`${API_BASE}/api/conversations/${id}`);
+  const res = await fetch(`/api/conversations/${id}`);
 
   if (!res.ok) {
     throw new Error(`Failed to fetch conversation: ${res.status}`);
