@@ -41,8 +41,9 @@ An AI-powered LINE chat screenshot analyzer that translates the "subtext" behind
 
    ```bash
    ANTHROPIC_API_KEY=sk-ant-...
-   # Optional: path to Google Cloud service account JSON
-   GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
+   # Google Cloud Vision service account JSON (entire JSON contents on a single line or
+   # wrapped in single quotes if multi-line). Required for screenshot OCR.
+   GOOGLE_CREDENTIALS_JSON='{"type":"service_account",...}'
    ```
 
 3. Start all services:
@@ -62,7 +63,7 @@ An AI-powered LINE chat screenshot analyzer that translates the "subtext" behind
 |----------------------------------|----------|--------------------------------------|------------------------------------------------------------------|
 | `DATABASE_URL`                   | backend  | PostgreSQL connection string         | `postgres://app:devpassword@db:5432/message_translator?sslmode=disable` |
 | `ANTHROPIC_API_KEY`              | backend  | Anthropic API key for Claude         | (required)                                                       |
-| `GOOGLE_APPLICATION_CREDENTIALS` | backend  | Path to Google Cloud credentials     | (optional)                                                       |
+| `GOOGLE_CREDENTIALS_JSON`        | frontend | Google Cloud Vision service account JSON (entire JSON, not a path) | (required for screenshot OCR)                |
 | `CORS_ORIGIN`                    | backend  | Allowed CORS origin                  | `http://localhost:3000`                                          |
 | `LISTEN_ADDR`                    | backend  | Server listen address                | `:8080`                                                          |
 | `NEXT_PUBLIC_API_URL`            | frontend | Backend API URL                      | `http://localhost:8080`                                          |
