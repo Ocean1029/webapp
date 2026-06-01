@@ -76,6 +76,13 @@ export async function POST(request: Request) {
     `;
     const analysis = analysisRows[0];
 
+    // Fire-and-forget: update person insight in background
+    const insightUrl = new URL(
+      `/api/people/${encodeURIComponent(contactName)}/insight`,
+      request.url
+    );
+    fetch(insightUrl.toString(), { method: "PUT" }).catch(() => {});
+
     // Format the response to match the Go backend's JSON shape.
     return NextResponse.json({
       id: analysis.id,

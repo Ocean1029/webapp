@@ -39,3 +39,26 @@ export interface ConversationSummary extends Conversation {
   latestAnalysisDate: string | null;
   analysisCount: number;
 }
+
+/** Lightweight person summary for the people list. */
+export interface PersonSummary {
+  contactName: string;
+  analysisCount: number;
+  weightedInterestScore: number;
+  latestAnalysisDate: string;
+}
+
+/** AI-generated insight for a person. */
+export interface PersonInsightData {
+  overallAnalysis: string;
+  strategy: string;
+  weightedInterestScore: number;
+  updatedAt: string;
+}
+
+/** Person detail with analyses and optional cached insight. */
+export interface PersonDetail {
+  contactName: string;
+  analyses: AnalysisResponse[];
+  insight: PersonInsightData | null;
+}

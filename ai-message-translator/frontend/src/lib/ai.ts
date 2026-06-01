@@ -74,6 +74,67 @@ function stripMarkdownFences(text: string): string {
   return cleaned.trim();
 }
 
+interface WeightedAnalysis {
+  summary: string;
+  interestScore: number;
+  createdAt: string;
+  weight: number;
+}
+
+interface PersonInsightResult {
+  overallAnalysis: string;
+  strategy: string;
+}
+
+/**
+ * Generate a comprehensive insight and strategy for a person
+ * based on all their weighted historical analyses.
+ */
+export async function generatePersonInsight(
+  contactName: string,
+  analyses: WeightedAnalysis[]
+): Promise<PersonInsightResult> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
+
+  const client = new Anthropic({ apiKey });
+
+  const analysesSummary = analyses
+    .map((a, i) => {
+      const pct = Math.round(a.weight * 100);
+      const dateStr = new Date(a.createdAt as unknown as string | Date).toISOString().slice(0, 10);
+      return `[第${i + 1}筆，日期：${dateStr}，興趣分數：${a.interestScore}/10，權重：${pct}%]\n${a.summary}`;
+    })
+    .join("\n\n");
+
+  const systemPrompt = `你是一位人際關係分析專家，請根據使用者與某人的多次對話分析記錄，
+給出綜合評估與應對策略。越近期的對話記錄權重越高，代表當前關係的實際狀態。
+
+請用繁體中文（台灣用語）回答，並以下列 JSON 格式回覆（不含 markdown）：
+{
+  "overallAnalysis": "對這個人的綜合分析（100-200字）：包含他的個性特質、對你的態度轉變趨勢、溝通風格",
+  "strategy": "整體應對策略（100-200字）：根據分析給出具體的互動建議與注意事項"
+}`;
+
+  const message = await client.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 1024,
+    system: systemPrompt,
+    messages: [
+      {
+        role: "user",
+        content: `聯絡人：${contactName}\n\n以下是所有對話分析記錄（依時間由舊到新排列）：\n\n${analysesSummary}`,
+      },
+    ],
+  });
+
+  const block = message.content[0];
+  if (block.type !== "text") throw new Error("Unexpected content type");
+
+  const cleaned = stripMarkdownFences(block.text);
+  return JSON.parse(cleaned) as PersonInsightResult;
+}
+
 /**
  * Analyze a conversation using Claude AI.
  * Returns the structured analysis result.

@@ -31,4 +31,16 @@ export async function runMigrations(): Promise<void> {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS person_insights (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      contact_name TEXT NOT NULL UNIQUE,
+      weighted_interest_score FLOAT NOT NULL,
+      overall_analysis TEXT NOT NULL,
+      strategy TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
 }
