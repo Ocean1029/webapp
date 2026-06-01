@@ -62,9 +62,7 @@ export default function Home() {
     <div className="flex flex-col flex-1 items-center bg-gray-50 min-h-screen">
       <header className="w-full">
         <div className="relative max-w-2xl mx-auto px-4 pt-28 pb-20 text-center">
-          {/* Radial glow */}
-          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-72 w-72 rounded-full bg-indigo-400/25 blur-2xl" />
-          <h1 className="relative text-3xl font-bold text-gray-900 mb-4">EchoText</h1>
+<h1 className="relative text-3xl font-bold text-gray-900 mb-4">EchoText</h1>
           <p className="relative text-sm text-gray-500">
             上傳聊天截圖或貼上對話，幫你解讀對方的潛台詞
           </p>

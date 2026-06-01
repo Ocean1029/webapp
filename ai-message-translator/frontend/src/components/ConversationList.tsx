@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import type { ConversationSummary, AnalysisResponse } from "@/types";
+import type { AnalysisResponse } from "@/types";
 import { getConversations, getConversation } from "@/lib/api";
 
 function formatDate(iso: string): string {
@@ -21,13 +21,13 @@ function scoreBadgeClass(score: number): string {
   return "bg-red-100 text-red-700";
 }
 
-interface ConversationGroup {
-  conversation: ConversationSummary;
+interface ContactGroup {
+  contactName: string;
   analyses: AnalysisResponse[];
 }
 
 export default function ConversationList() {
-  const [groups, setGroups] = useState<ConversationGroup[]>([]);
+  const [groups, setGroups] = useState<ContactGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -35,15 +35,41 @@ export default function ConversationList() {
     (async () => {
       try {
         const conversations = await getConversations();
-        const results = await Promise.all(
+        const details = await Promise.all(
           conversations.map((conv) =>
             getConversation(conv.id).then((detail) => ({
-              conversation: conv,
+              contactName: conv.contactName,
               analyses: detail.analyses,
             }))
           )
         );
-        setGroups(results);
+
+        // Group analyses by contact name (case-insensitive), preserve original casing
+        const analysesMap = new Map<string, AnalysisResponse[]>();
+        const nameMap = new Map<string, string>();
+        for (const { contactName, analyses } of details) {
+          const key = contactName.trim().toLowerCase();
+          if (!nameMap.has(key)) nameMap.set(key, contactName);
+          const existing = analysesMap.get(key) ?? [];
+          analysesMap.set(key, [...existing, ...analyses]);
+        }
+
+        const finalGroups: ContactGroup[] = Array.from(analysesMap.entries())
+          .map(([key, analyses]) => ({
+            contactName: nameMap.get(key) ?? key,
+            analyses: [...analyses].sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            ),
+          }))
+          .filter((g) => g.analyses.length > 0)
+          .sort(
+            (a, b) =>
+              new Date(b.analyses[0].createdAt).getTime() -
+              new Date(a.analyses[0].createdAt).getTime()
+          );
+
+        setGroups(finalGroups);
       } catch (err) {
         setError(err instanceof Error ? err.message : "載入失敗");
       } finally {
@@ -80,12 +106,10 @@ export default function ConversationList() {
 
   return (
     <div className="space-y-6">
-      {groups
-        .filter((g) => g.analyses.length > 0)
-        .map(({ conversation, analyses }) => (
-          <div key={conversation.id}>
+      {groups.map(({ contactName, analyses }) => (
+          <div key={contactName}>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">
-              {conversation.contactName}
+              {contactName}
             </p>
             <div className="rounded-xl bg-white border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
               {analyses.map((analysis) => (
