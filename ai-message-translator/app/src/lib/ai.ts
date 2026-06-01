@@ -52,12 +52,12 @@ interface AnalysisResult {
   summary: string;
 }
 
-// Select the system prompt based on tone mode.
-function selectPrompt(toneMode: string): string {
-  if (toneMode === "bestfriend") {
-    return bestFriendSystemPrompt;
-  }
-  return counselorSystemPrompt;
+// Select the system prompt based on tone mode, appending gender context if provided.
+function selectPrompt(toneMode: string, gender?: string): string {
+  const base = toneMode === "bestfriend" ? bestFriendSystemPrompt : counselorSystemPrompt;
+  if (!gender) return base;
+  const genderLabel = gender === "female" ? "女生（她）" : "男生（他）";
+  return `${base}\n\nIMPORTANT: The person whose messages you are analyzing is ${genderLabel}. Keep this in mind when interpreting communication style, subtext, and giving advice.`;
 }
 
 // Strip markdown code block fences from Claude's response text.
@@ -103,13 +103,14 @@ function parseAnalysisResponse(message: Anthropic.Message): AnalysisResult {
  */
 export async function analyzeConversation(
   text: string,
-  toneMode: string
+  toneMode: string,
+  gender?: string
 ): Promise<AnalysisResult> {
   const client = createClient();
   const message = await client.messages.create({
     model: "claude-sonnet-4-5",
     max_tokens: 2048,
-    system: selectPrompt(toneMode),
+    system: selectPrompt(toneMode, gender),
     messages: [{ role: "user", content: text }],
   });
   return parseAnalysisResponse(message);

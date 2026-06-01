@@ -12,12 +12,14 @@ import type {
 export async function analyzeScreenshot(
   file: File,
   toneMode: string,
-  contactName: string
+  contactName: string,
+  gender: string
 ): Promise<AnalysisResponse> {
   const formData = new FormData();
   formData.append("screenshot", file);
   formData.append("toneMode", toneMode);
   formData.append("contactName", contactName);
+  formData.append("gender", gender);
 
   const res = await fetch("/api/analyze/screenshot", {
     method: "POST",
@@ -37,12 +39,13 @@ export async function analyzeScreenshot(
 export async function analyzeText(
   text: string,
   toneMode: string,
-  contactName: string
+  contactName: string,
+  gender: string
 ): Promise<AnalysisResponse> {
   const res = await fetch("/api/analyze/text", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, toneMode, contactName }),
+    body: JSON.stringify({ text, toneMode, contactName, gender }),
   });
 
   if (!res.ok) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { ToneMode, AnalysisResponse } from "@/types";
+import type { ToneMode, Gender, AnalysisResponse } from "@/types";
 import { analyzeScreenshot, analyzeText } from "@/lib/api";
 import UploadArea from "@/components/UploadArea";
 import AnalysisResult from "@/components/AnalysisResult";
@@ -17,11 +17,11 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleScreenshot = useCallback(
-    async (file: File, toneMode: ToneMode, contactName: string) => {
+    async (file: File, toneMode: ToneMode, contactName: string, gender: Gender) => {
       setPageState("loading");
       setErrorMessage("");
       try {
-        const data = await analyzeScreenshot(file, toneMode, contactName);
+        const data = await analyzeScreenshot(file, toneMode, contactName, gender);
         setResult(data);
         setPageState("result");
       } catch (err) {
@@ -35,11 +35,11 @@ export default function Home() {
   );
 
   const handleText = useCallback(
-    async (text: string, toneMode: ToneMode, contactName: string) => {
+    async (text: string, toneMode: ToneMode, contactName: string, gender: Gender) => {
       setPageState("loading");
       setErrorMessage("");
       try {
-        const data = await analyzeText(text, toneMode, contactName);
+        const data = await analyzeText(text, toneMode, contactName, gender);
         setResult(data);
         setPageState("result");
       } catch (err) {

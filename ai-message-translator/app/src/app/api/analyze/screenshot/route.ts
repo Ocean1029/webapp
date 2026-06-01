@@ -24,6 +24,7 @@ export async function POST(request: Request) {
   const file = formData.get("screenshot");
   const toneMode = formData.get("toneMode") as string | null;
   const contactName = formData.get("contactName") as string | null;
+  const gender = formData.get("gender") as string | null;
 
   if (!file || !(file instanceof Blob)) {
     return NextResponse.json(
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
     }
 
     // Step 2: Send the extracted text to Claude for analysis.
-    const analysisResult = await analyzeConversation(extractedText, toneMode);
+    const analysisResult = await analyzeConversation(extractedText, toneMode, gender ?? undefined);
 
     const sql = getSQL();
     const convRows = await sql`

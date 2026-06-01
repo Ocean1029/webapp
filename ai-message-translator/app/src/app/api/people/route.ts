@@ -10,6 +10,17 @@ export async function GET() {
     await ensureMigrated();
     const sql = getSQL();
 
+    // Load all aliases: alias → canonical
+    const aliasRows = await sql`SELECT canonical_name, alias FROM contact_aliases`;
+    const aliasToCanonical = new Map<string, string>();
+    const canonicalToAliases = new Map<string, string[]>();
+    for (const row of aliasRows) {
+      aliasToCanonical.set((row.alias as string).toLowerCase(), row.canonical_name as string);
+      const key = (row.canonical_name as string).toLowerCase();
+      if (!canonicalToAliases.has(key)) canonicalToAliases.set(key, []);
+      canonicalToAliases.get(key)!.push(row.alias as string);
+    }
+
     const rows = await sql`
       SELECT
         LOWER(c.contact_name) AS name_key,
@@ -28,21 +39,34 @@ export async function GET() {
 
     const now = Date.now();
 
-    // Merge rows with same name (case-insensitive), compute weighted score
-    const nameMap = new Map<string, { contactName: string; entries: { interest_score: number; created_at: string }[]; latestDate: string }>();
+    // Build canonical-keyed map, merging aliases
+    const canonicalMap = new Map<string, {
+      contactName: string;
+      entries: { interest_score: number; created_at: string }[];
+      latestDate: string;
+    }>();
+
     for (const row of rows) {
-      const key = row.name_key as string;
-      if (!nameMap.has(key)) {
-        nameMap.set(key, { contactName: row.contact_name as string, entries: [], latestDate: row.latest_analysis_date as string });
+      const nameKey = row.name_key as string;
+      // Resolve to canonical
+      const resolvedCanonical = aliasToCanonical.get(nameKey) ?? (row.contact_name as string);
+      const canonicalKey = resolvedCanonical.toLowerCase();
+
+      if (!canonicalMap.has(canonicalKey)) {
+        canonicalMap.set(canonicalKey, {
+          contactName: resolvedCanonical,
+          entries: [],
+          latestDate: row.latest_analysis_date as string,
+        });
       }
-      const entry = nameMap.get(key)!;
+      const entry = canonicalMap.get(canonicalKey)!;
       entry.entries.push(...(row.score_entries as { interest_score: number; created_at: string }[]));
       if (new Date(row.latest_analysis_date as string) > new Date(entry.latestDate)) {
         entry.latestDate = row.latest_analysis_date as string;
       }
     }
 
-    const people = Array.from(nameMap.values()).map(({ contactName, entries, latestDate }) => {
+    const people = Array.from(canonicalMap.entries()).map(([key, { contactName, entries, latestDate }]) => {
       let weightSum = 0;
       let scoreSum = 0;
       for (const e of entries) {
@@ -53,11 +77,17 @@ export async function GET() {
       }
       return {
         contactName,
+        aliases: canonicalToAliases.get(key) ?? [],
         analysisCount: entries.length,
         weightedInterestScore: weightSum > 0 ? Math.round((scoreSum / weightSum) * 10) / 10 : 0,
         latestAnalysisDate: latestDate,
       };
     });
+
+    // Sort by latest analysis date
+    people.sort((a, b) =>
+      new Date(b.latestAnalysisDate).getTime() - new Date(a.latestAnalysisDate).getTime()
+    );
 
     return NextResponse.json(people);
   } catch (err) {

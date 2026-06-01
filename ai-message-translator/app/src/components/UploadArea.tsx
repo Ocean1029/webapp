@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import type { ToneMode } from "@/types";
+import { BsPersonFill } from "react-icons/bs";
+import type { ToneMode, Gender } from "@/types";
 import ToneModeToggle from "./ToneModeToggle";
 
 type InputTab = "screenshot" | "text";
@@ -10,12 +11,14 @@ interface UploadAreaProps {
   onSubmitScreenshot: (
     file: File,
     toneMode: ToneMode,
-    contactName: string
+    contactName: string,
+    gender: Gender
   ) => void;
   onSubmitText: (
     text: string,
     toneMode: ToneMode,
-    contactName: string
+    contactName: string,
+    gender: Gender
   ) => void;
   isLoading: boolean;
 }
@@ -30,6 +33,7 @@ export default function UploadArea({
 }: UploadAreaProps) {
   const [activeTab, setActiveTab] = useState<InputTab>("screenshot");
   const [toneMode, setToneMode] = useState<ToneMode>("counselor");
+  const [gender, setGender] = useState<Gender>("female");
   const [contactName, setContactName] = useState("");
   const [textInput, setTextInput] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -69,15 +73,16 @@ export default function UploadArea({
     if (!contactName.trim()) return;
 
     if (activeTab === "screenshot" && selectedFile) {
-      onSubmitScreenshot(selectedFile, toneMode, contactName.trim());
+      onSubmitScreenshot(selectedFile, toneMode, contactName.trim(), gender);
     } else if (activeTab === "text" && textInput.trim()) {
-      onSubmitText(textInput.trim(), toneMode, contactName.trim());
+      onSubmitText(textInput.trim(), toneMode, contactName.trim(), gender);
     }
   }, [
     activeTab,
     selectedFile,
     textInput,
     toneMode,
+    gender,
     contactName,
     onSubmitScreenshot,
     onSubmitText,
@@ -99,14 +104,28 @@ export default function UploadArea({
         >
           對方名稱
         </label>
-        <input
-          id="contact-name"
-          type="text"
-          value={contactName}
-          onChange={(e) => setContactName(e.target.value)}
-          placeholder="輸入對方的名字..."
-          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-colors"
-        />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setGender(gender === "male" ? "female" : "male")}
+            title={gender === "male" ? "男生（點擊切換）" : "女生（點擊切換）"}
+            className={`flex-shrink-0 w-10 h-10 rounded-lg border flex items-center justify-center transition-colors ${
+              gender === "male"
+                ? "bg-blue-50 border-blue-300 text-blue-500 hover:bg-blue-100"
+                : "bg-pink-50 border-pink-300 text-pink-500 hover:bg-pink-100"
+            }`}
+          >
+            <BsPersonFill className="w-5 h-5" />
+          </button>
+          <input
+            id="contact-name"
+            type="text"
+            value={contactName}
+            onChange={(e) => setContactName(e.target.value)}
+            placeholder="輸入對方的名字..."
+            className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-colors"
+          />
+        </div>
       </div>
 
       {/* Tone mode toggle */}

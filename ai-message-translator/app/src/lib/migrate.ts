@@ -33,6 +33,20 @@ export async function runMigrations(): Promise<void> {
   `;
 
   await sql`
+    CREATE TABLE IF NOT EXISTS contact_aliases (
+      canonical_name TEXT NOT NULL,
+      alias          TEXT NOT NULL,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (canonical_name, alias)
+    )
+  `;
+
+  await sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS contact_aliases_alias_lower_idx
+    ON contact_aliases (LOWER(alias))
+  `;
+
+  await sql`
     CREATE TABLE IF NOT EXISTS person_insights (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       contact_name TEXT NOT NULL UNIQUE,

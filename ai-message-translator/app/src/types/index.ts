@@ -12,6 +12,8 @@ export interface ReplySuggestion {
 
 export type ToneMode = "counselor" | "bestfriend";
 
+export type Gender = "male" | "female";
+
 export interface AnalysisResponse {
   id: string;
   interestScore: number;
@@ -43,6 +45,7 @@ export interface ConversationSummary extends Conversation {
 /** Lightweight person summary for the people list. */
 export interface PersonSummary {
   contactName: string;
+  aliases: string[];
   analysisCount: number;
   weightedInterestScore: number;
   latestAnalysisDate: string;
@@ -59,6 +62,7 @@ export interface PersonInsightData {
 /** Person detail with analyses and optional cached insight. */
 export interface PersonDetail {
   contactName: string;
+  aliases: string[];
   analyses: AnalysisResponse[];
   insight: PersonInsightData | null;
 }

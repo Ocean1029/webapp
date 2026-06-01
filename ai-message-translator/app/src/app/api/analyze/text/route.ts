@@ -6,6 +6,7 @@ interface AnalyzeTextBody {
   text?: string;
   toneMode?: string;
   contactName?: string;
+  gender?: string;
 }
 
 export async function POST(request: Request) {
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { text, toneMode, contactName } = body;
+  const { text, toneMode, contactName, gender } = body;
 
   // Validate required fields (same rules as Go handler).
   if (!text) {
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
 
   try {
     // Analyze with Claude AI.
-    const analysisResult = await analyzeConversation(text, toneMode);
+    const analysisResult = await analyzeConversation(text, toneMode, gender);
 
     // Create conversation in the database.
     const sql = getSQL();
