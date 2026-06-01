@@ -74,6 +74,47 @@ function stripMarkdownFences(text: string): string {
   return cleaned.trim();
 }
 
+// Create an Anthropic client (reuses the same env-var check).
+function createClient(): Anthropic {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+  }
+  return new Anthropic({ apiKey });
+}
+
+// Parse the Claude response into an AnalysisResult.
+function parseAnalysisResponse(message: Anthropic.Message): AnalysisResult {
+  if (message.content.length === 0) {
+    throw new Error("Claude returned empty response");
+  }
+
+  const block = message.content[0];
+  if (block.type !== "text") {
+    throw new Error(`Unexpected content block type: ${block.type}`);
+  }
+
+  const cleaned = stripMarkdownFences(block.text);
+  return JSON.parse(cleaned);
+}
+
+/**
+ * Analyze a conversation using Claude AI (text input).
+ */
+export async function analyzeConversation(
+  text: string,
+  toneMode: string
+): Promise<AnalysisResult> {
+  const client = createClient();
+  const message = await client.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 2048,
+    system: selectPrompt(toneMode),
+    messages: [{ role: "user", content: text }],
+  });
+  return parseAnalysisResponse(message);
+}
+
 interface WeightedAnalysis {
   summary: string;
   interestScore: number;
@@ -94,10 +135,7 @@ export async function generatePersonInsight(
   contactName: string,
   analyses: WeightedAnalysis[]
 ): Promise<PersonInsightResult> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
-
-  const client = new Anthropic({ apiKey });
+  const client = createClient();
 
   const analysesSummary = analyses
     .map((a, i) => {
@@ -133,47 +171,4 @@ export async function generatePersonInsight(
 
   const cleaned = stripMarkdownFences(block.text);
   return JSON.parse(cleaned) as PersonInsightResult;
-}
-
-/**
- * Analyze a conversation using Claude AI.
- * Returns the structured analysis result.
- */
-export async function analyzeConversation(
-  text: string,
-  toneMode: string
-): Promise<AnalysisResult> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    throw new Error("ANTHROPIC_API_KEY environment variable is not set");
-  }
-
-  const client = new Anthropic({ apiKey });
-  const systemPrompt = selectPrompt(toneMode);
-
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 2048,
-    system: systemPrompt,
-    messages: [
-      {
-        role: "user",
-        content: text,
-      },
-    ],
-  });
-
-  if (message.content.length === 0) {
-    throw new Error("Claude returned empty response");
-  }
-
-  const block = message.content[0];
-  if (block.type !== "text") {
-    throw new Error(`Unexpected content block type: ${block.type}`);
-  }
-
-  const cleaned = stripMarkdownFences(block.text);
-
-  const result: AnalysisResult = JSON.parse(cleaned);
-  return result;
 }
