@@ -1,2 +1,0 @@
-DROP TABLE IF EXISTS analyses;
-DROP TABLE IF EXISTS conversations;
