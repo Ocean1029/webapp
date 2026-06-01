@@ -5,6 +5,7 @@ import type { AnalysisResponse } from "@/types";
 interface AnalysisResultProps {
   result: AnalysisResponse;
   onReset: () => void;
+  resetLabel?: string;
 }
 
 /**
@@ -27,6 +28,7 @@ function scoreColor(score: number): {
 export default function AnalysisResult({
   result,
   onReset,
+  resetLabel = "重新分析",
 }: AnalysisResultProps) {
   const colors = scoreColor(result.interestScore);
 
@@ -45,6 +47,16 @@ export default function AnalysisResult({
           </span>
         </div>
         <p className="mt-2 text-xs text-gray-400">/10</p>
+      </div>
+
+      {/* Summary */}
+      <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-100">
+        <h2 className="text-sm font-medium text-gray-500 mb-2">
+          整體分析
+        </h2>
+        <p className="text-sm text-gray-700 leading-relaxed">
+          {result.summary}
+        </p>
       </div>
 
       {/* Subtext translation list */}
@@ -99,23 +111,13 @@ export default function AnalysisResult({
         </div>
       </div>
 
-      {/* Summary */}
-      <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-100">
-        <h2 className="text-sm font-medium text-gray-500 mb-2">
-          整體分析
-        </h2>
-        <p className="text-sm text-gray-700 leading-relaxed">
-          {result.summary}
-        </p>
-      </div>
-
       {/* Reset button */}
       <button
         type="button"
         onClick={onReset}
         className="w-full rounded-xl border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
       >
-        重新分析
+        {resetLabel}
       </button>
     </div>
   );
