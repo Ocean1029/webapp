@@ -24,3 +24,7 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.hero-glow {
+  background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.18) 0%, transparent 65%);
+}
