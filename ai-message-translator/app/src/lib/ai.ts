@@ -74,34 +74,8 @@ function stripMarkdownFences(text: string): string {
   return cleaned.trim();
 }
 
-/**
- * Analyze a conversation using Claude AI.
- * Returns the structured analysis result.
- */
-export async function analyzeConversation(
-  text: string,
-  toneMode: string
-): Promise<AnalysisResult> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    throw new Error("ANTHROPIC_API_KEY environment variable is not set");
-  }
-
-  const client = new Anthropic({ apiKey });
-  const systemPrompt = selectPrompt(toneMode);
-
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 2048,
-    system: systemPrompt,
-    messages: [
-      {
-        role: "user",
-        content: text,
-      },
-    ],
-  });
-
+// Parse the Claude response into an AnalysisResult.
+function parseAnalysisResponse(message: Anthropic.Message): AnalysisResult {
   if (message.content.length === 0) {
     throw new Error("Claude returned empty response");
   }
@@ -112,7 +86,31 @@ export async function analyzeConversation(
   }
 
   const cleaned = stripMarkdownFences(block.text);
+  return JSON.parse(cleaned);
+}
 
-  const result: AnalysisResult = JSON.parse(cleaned);
-  return result;
+// Create an Anthropic client (reuses the same env-var check).
+function createClient(): Anthropic {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error("ANTHROPIC_API_KEY environment variable is not set");
+  }
+  return new Anthropic({ apiKey });
+}
+
+/**
+ * Analyze a conversation using Claude AI (text input).
+ */
+export async function analyzeConversation(
+  text: string,
+  toneMode: string
+): Promise<AnalysisResult> {
+  const client = createClient();
+  const message = await client.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 2048,
+    system: selectPrompt(toneMode),
+    messages: [{ role: "user", content: text }],
+  });
+  return parseAnalysisResponse(message);
 }
